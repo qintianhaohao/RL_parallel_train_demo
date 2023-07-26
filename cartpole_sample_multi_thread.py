@@ -1,5 +1,5 @@
 """
-使用ray自带的多进程库：multiprocessing，和python的线程池，实现并行采样
+使用python的线程池，实现并行采样
 """
 import gym
 import ray
@@ -44,32 +44,27 @@ def run_episode(agent):
     return total_reward
 
 
-def parallel_sampling(args):
-    num_episodes = args[0]
-    num_threads = args[1]
+def parallel_sampling(num_episodes, num_threads):
     agent = CartPoleAgent(state_dim=4, action_dim=2) # Change the dimensions based on the CartPole environment.
 
+    def thread_fn():
+        return [run_episode(agent) for _ in range(num_episodes)]
+
     with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        # thread_results = list(executor.map(thread_fn, range(num_threads)))
         thread_results = executor.map(run_episode, [agent] * num_episodes)
-        for i, results in enumerate(thread_results):
-            print(i, results)
+        for results in thread_results:
+            print(results)
 
+    # Flatten the thread_results to get all rewards from all threads.
+    # all_rewards = [reward for thread_rewards in thread_results for reward in thread_rewards]
+    # print(all_rewards)
 
-def run_ray_pool(num_episodes_per_thread, num_threads, num_processes):
-    """
-
-    :return:
-    """
-    args = [(num_episodes_per_thread, num_threads) for _ in range(num_processes)]
-    pool = Pool(processes=num_processes)
-    for i, result in enumerate(pool.map(parallel_sampling, args)):
-        print('process:', i, result)
-
+    # Update the agent's policy using all the experiences.
+    # agent.update_policy(all_rewards)
 
 if __name__ == "__main__":
-    num_episodes_per_thread = 5
-    num_threads = 2
-    num_processes = 8
+    num_episodes_per_thread = 1000
+    num_threads = 8
 
-    # parallel_sampling(num_episodes_per_thread, num_threads)
-    run_ray_pool(num_episodes_per_thread, num_threads, num_processes)
+    parallel_sampling(num_episodes_per_thread, num_threads)
