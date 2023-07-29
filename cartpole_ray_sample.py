@@ -3,6 +3,8 @@
 """
 import gym
 import ray
+import numpy as np
+from stable_baselines3.common.buffers import ReplayBuffer
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -20,7 +22,11 @@ def cartpole_sample(args):
 
     print(f'--- 启动第 {env_id} 个采样环境 ---')
     env = gym.make("CartPole-v1")
-
+    reply_buffer = ReplayBuffer(buffer_size=10,
+                                observation_space=env.observation_space,
+                                action_space=env.action_space,
+                                n_envs=1,
+                                handle_timeout_termination = False)
     for ep in range(episodes):
         obs = env.reset()
         while True:
@@ -28,6 +34,7 @@ def cartpole_sample(args):
             next_obs, reward, done, info = env.step(action)
             # reply_buffer.add(obs, next_obs, action, reward, done, env_id)
             # reply_buffer[env_id] = env_id
+            # reply_buffer.add(obs, next_obs, np.array([action]), np.array([reward]), np.array([done]), info)
             obs = next_obs
             if done:
                 break
@@ -49,7 +56,7 @@ def run_ray_pool(num_workers, num_episodes_per_worker):
     # args = [(i, buffer_id) for i in range(10)]
 
     buffer = ray.get([cartpole_sample.remote([i, buffer_id, num_episodes_per_worker]) for i in range(num_workers)])
-    # print('buffer: ', buffer)
+    print('buffer: ', buffer)
 
 
 if __name__ == '__main__':
