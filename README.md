@@ -50,6 +50,21 @@ for ip_address, num_tasks in Counter(ip_addresses).items():
     print('    {} tasks on {}'.format(num_tasks, ip_address))
 ```
 
+# 并行采样、并行训练测试
+## 切换conda环境
+```commandline
+conda activate py310
+```
+
+## 并行采样
+```commandline
+python3 cartpole_ray_sample.py --num-workers 50 --num-episodes-per-worker 1000
+```
+
+## 并行训练
+```commandline
+python3 cartpole_ray_train.py --num-workers 80 --num-cpus-per-worker 0.1
+```
 
 # 参考
 <https://docs.ray.io/en/releases-1.13.0/cluster/cloud.html#cluster-cloud>

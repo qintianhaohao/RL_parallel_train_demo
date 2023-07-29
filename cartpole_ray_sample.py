@@ -1,18 +1,24 @@
 """
-使用ray，实现并行采样
+使用ray.remote，实现并行采样
 """
 import gym
 import ray
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--num-workers", type=int, default=16, help="number of workers, allow more than the number of physical CPUs")
+parser.add_argument("--num-episodes-per-worker", type=int, default=2000, help="Number of episodes per worker.")
 
 
-@ray.remote(num_cpus=0.5)
+# @ray.remote(num_cpus=0.5)
+@ray.remote
 def cartpole_sample(args):
     env_id = args[0]
     reply_buffer = ray.get(args[1])
     episodes = args[2]
-    print(f'reply buffer: {reply_buffer}')
+    # print(f'reply buffer: {reply_buffer}')
 
-    print(f'----- start env, id: {env_id}')
+    print(f'--- 启动第 {env_id} 个采样环境 ---')
     env = gym.make("CartPole-v1")
 
     for ep in range(episodes):
@@ -25,17 +31,16 @@ def cartpole_sample(args):
             obs = next_obs
             if done:
                 break
-    print(f'---------- end env, id: {env_id}, buffer: {reply_buffer}')
+    # print(f'---------- end env, id: {env_id}, buffer: {reply_buffer}')
+    print(f'--- 第 {env_id} 个环境完成采样 ---')
 
     return reply_buffer
 
 
-def run_ray_pool(num_episodes_per_worker, num_workers):
+def run_ray_pool(num_workers, num_episodes_per_worker):
     """
-
     :return:
     """
-
     # buffer = multiprocessing.Array('i', 3)
     # buffer = array.array('i', [0]*3)
     buffer_id = ray.put([0] * num_workers)
@@ -43,14 +48,17 @@ def run_ray_pool(num_episodes_per_worker, num_workers):
     # buffer_id = [0]*3
     # args = [(i, buffer_id) for i in range(10)]
 
-    print(ray.get([cartpole_sample.remote([i, buffer_id, num_episodes_per_worker]) for i in range(num_workers)]))
-
+    buffer = ray.get([cartpole_sample.remote([i, buffer_id, num_episodes_per_worker]) for i in range(num_workers)])
+    # print('buffer: ', buffer)
 
 
 if __name__ == '__main__':
-    num_episodes_per_worker = 20000
-    num_workers = 8
+    # this can be used on an already started ray cluster
+    # ray.init(address="auto")
 
+    # this can be used on a single node
     ray.init()
-    
-    run_ray_pool(num_episodes_per_worker, num_workers)
+
+    args = parser.parse_args()
+    print(f'总进程数： {args.num_workers}')
+    run_ray_pool(args.num_workers, args.num_episodes_per_worker)
