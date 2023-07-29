@@ -1,3 +1,8 @@
+# 注意
+本项目所使用的软件和包的版本如下：
+python: 3.10
+ray: 1.13.0
+
 # 如何启动ray集群
 ## 手动启动
 在集群主节点，输入：
@@ -67,4 +72,10 @@ python3 cartpole_ray_train.py --num-workers 80 --num-cpus-per-worker 0.1
 ```
 
 # 参考
+## ray搭建集群
 <https://docs.ray.io/en/releases-1.13.0/cluster/cloud.html#cluster-cloud>
+<https://docs.ray.io/en/releases-1.13.0/cluster/guide.html?highlight=8265#deploying-an-application>
+
+## ray.remote 并行计算
+<https://docs.ray.io/en/latest/ray-core/scheduling/resources.html#resource-requirements>
+<https://docs.ray.io/en/latest/ray-core/api/doc/ray.remote.html>
