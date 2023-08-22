@@ -68,7 +68,7 @@ python3 cartpole_ray_sample.py --num-workers 50 --num-episodes-per-worker 1000
 
 ## 并行训练
 ```commandline
-python3 cartpole_ray_train.py --num-workers 80 --num-cpus-per-worker 0.1
+python3 cartpole_ray_train.py --num-workers 80 --num-cpus-per-worker 0.1 --num-train 10
 ```
 
 # 参考
